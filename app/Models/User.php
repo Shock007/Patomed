@@ -1,45 +1,43 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\HasApiTokens; // si usas Sanctum, opcional
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $table = 'usuarios';
+    protected $primaryKey = 'id_usuario';
+    public $timestamps = false; // la tabla usa 'creado_en' en vez de created_at
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'usuario',
+        'password_hash',
+        'creado_en',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password_hash'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+    // Laravel usa getAuthPassword() para obtener la contraseña
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
+    // Helper para verificar contraseña manual (por si lo necesitas)
+    public function checkPassword($plain)
+    {
+        return Hash::check($plain, $this->password_hash);
+    }
+
+    public function estudios()
+    {
+        return $this->hasMany(Estudio::class, 'id_usuario', 'id_usuario');
+    }
 }
