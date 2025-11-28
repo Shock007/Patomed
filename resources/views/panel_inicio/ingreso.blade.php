@@ -33,6 +33,10 @@
             padding: 25px;
             box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
         }
+        .placeholder-text {
+            color: #6c757d !important;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -76,49 +80,50 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Código</label>
-                        <input type="text" class="form-control" placeholder="P-001">
+                        <input type="text" class="form-control placeholder-text" name="codigo" placeholder="Ej: P-001" value="{{ old('codigo') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control">
+                        <input type="date" class="form-control" name="fecha" value="{{ old('fecha') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" value="Juan">
+                        <input type="text" class="form-control placeholder-text" name="nombre" placeholder="Ingrese el nombre del paciente" value="{{ old('nombre') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Apellidos</label>
-                        <input type="text" class="form-control" value="Pérez García">
+                        <input type="text" class="form-control placeholder-text" name="apellidos" placeholder="Ingrese los apellidos del paciente" value="{{ old('apellidos') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Cédula</label>
-                        <input type="text" class="form-control" placeholder="1234567890">
+                        <input type="text" class="form-control placeholder-text" name="cedula" placeholder="Ej: 1234567890" value="{{ old('cedula') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">F. Nacimiento</label>
-                        <input type="date" class="form-control">
+                        <input type="date" class="form-control" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">EPS</label>
-                        <input type="text" class="form-control" placeholder="EPS Sanitas">
+                        <input type="text" class="form-control placeholder-text" name="eps" placeholder="Ej: EPS Sanitas" value="{{ old('eps') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Edad</label>
-                        <input type="number" class="form-control" value="45">
+                        <input type="number" class="form-control placeholder-text" name="edad" placeholder="Ingrese la edad" value="{{ old('edad') }}">
                     </div>
 
                     <div class="col-md-12">
                         <label class="form-label">Sexo</label>
-                        <select class="form-select">
-                            <option>Masculino</option>
-                            <option>Femenino</option>
+                        <select class="form-select" name="sexo">
+                            <option value="" class="placeholder-text">Seleccione el sexo</option>
+                            <option value="M" {{ old('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
+                            <option value="F" {{ old('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
                         </select>
                     </div>
 
@@ -133,18 +138,19 @@
                 <h5 class="fw-bold mb-3">Análisis Patológico</h5>
 
                 <label class="form-label">Descripción Macroscópica</label>
-                <textarea class="form-control mb-3" rows="3" placeholder="Describa las características visibles macroscópicas..."></textarea>
+                <textarea class="form-control mb-3 placeholder-text" name="descripcion_macroscopica" rows="3" placeholder="Describa las características visibles macroscópicas del análisis...">{{ old('descripcion_macroscopica') }}</textarea>
 
                 <label class="form-label">Descripción Microscópica</label>
-                <textarea class="form-control mb-3" rows="3" placeholder="Describa las características microscópicas..."></textarea>
+                <textarea class="form-control mb-3 placeholder-text" name="descripcion_microscopica" rows="3" placeholder="Describa las características microscópicas observadas...">{{ old('descripcion_microscopica') }}</textarea>
 
                 <label class="form-label">Diagnóstico</label>
-                <textarea class="form-control mb-3" rows="2" placeholder="Diagnóstico clínico..."></textarea>
+                <textarea class="form-control mb-3 placeholder-text" name="diagnostico" rows="2" placeholder="Ingrese el diagnóstico clínico...">{{ old('diagnostico') }}</textarea>
 
                 <label class="form-label">Resultado</label>
-                <select class="form-select">
-                    <option>Negativo</option>
-                    <option>Positivo</option>
+                <select class="form-select" name="resultado">
+                    <option value="" class="placeholder-text">Seleccione el resultado</option>
+                    <option value="Negativo" {{ old('resultado') == 'Negativo' ? 'selected' : '' }}>Negativo</option>
+                    <option value="Positivo" {{ old('resultado') == 'Positivo' ? 'selected' : '' }}>Positivo</option>
                 </select>
 
             </div>
@@ -152,10 +158,12 @@
     </div>
 
     <!-- BOTONES -->
-    <div class="form-section mt-4 d-flex gap-5 justify-content-center">
-        <button type="submit"class="btn btn-primary btn-sm fw-bold">Guardar</button>
-        <button class="btn btn-outline-secondary btn-sm">Validar</button>
-        <button class="btn btn-outline-secondary btn-sm">Limpiar</button>
+    <div class="form-section mt-4 d-flex gap-3 justify-content-center flex-wrap">
+        <button type="button" class="btn btn-outline-primary btn-sm fw-bold">Guardar Parcial</button>
+        <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Completo</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm">Imprimir</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm">Validar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm">Limpiar</button>
     </div>
 
 </div>

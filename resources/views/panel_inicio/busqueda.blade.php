@@ -33,6 +33,14 @@
             padding: 25px;
             box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
         }
+        .table th {
+            background-color: #0d47a1;
+            color: white;
+        }
+        .placeholder-text {
+            color: #6c757d !important;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -66,18 +74,64 @@
 <!-- CONTENIDO PRINCIPAL -->
 <div class="container my-4">
 
-    <div class="row g-4">
+    <!-- BÚSQUEDA DE PACIENTES -->
+    <div class="form-section">
+        <h5 class="fw-bold mb-3">Búsqueda de Pacientes</h5>
+        <p class="text-muted mb-3">Busque pacientes por código, cédula o nombre</p>
         
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Tipo de búsqueda</label>
+                <select class="form-select">
+                    <option>Código</option>
+                    <option>Cédula</option>
+                    <option>Nombre</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">&nbsp;</label>
+                <input type="text" class="form-control placeholder-text" placeholder="Ingrese término de búsqueda...">
+            </div>
+        </div>
 
-    <!-- BOTONES -->
-    <div class="form-section mt-4 d-flex gap-5 justify-content-center">
-        <button class="btn btn-primary btn-sm fw-bold">Guardar</button>
-        <button class="btn btn-outline-secondary btn-sm">Validar</button>
-        <button class="btn btn-outline-secondary btn-sm">Limpiar</button>
+        <div class="mt-3">
+            <p class="text-muted">Se encontraron 0 resultados</p>
+        </div>
+    </div>
+
+    <!-- LISTADO DE PACIENTES -->
+    <div class="form-section mt-4">
+        <h5 class="fw-bold mb-3">Listado de Pacientes</h5>
+        
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Fecha</th>
+                        <th>Nombre</th>
+                        <th>Cédula</th>
+                        <th>EPS</th>
+                        <th>Edad</th>
+                        <th>Sexo</th>
+                        <th>Resultado</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los datos se autocompletarán desde la base de datos -->
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            No se encontraron pacientes. Los datos se mostrarán aquí cuando se ingresen pacientes en el sistema.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
-
 
 </body>
 </html>
