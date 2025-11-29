@@ -2,19 +2,16 @@
 
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\EstudioController;
+use App\Http\Controllers\ReporteController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
-// Redirección principal
 Route::get('/', function () {
     return redirect()->route('login.index');
 });
 
-// ===========================
-// LOGIN - GET
-// ===========================
 Route::get('/login', function () {
     if (session()->has('usuario_id')) {
         return redirect()->route('pacientes.create');
@@ -22,9 +19,6 @@ Route::get('/login', function () {
     return view('login.index');
 })->name('login.index');
 
-// ===========================
-// LOGIN - POST
-// ===========================
 Route::post('/login', function (Request $request) {
     $request->validate([
         'username' => 'required|string',
@@ -41,12 +35,8 @@ Route::post('/login', function (Request $request) {
     return back()->with('error', 'Credenciales incorrectas');
 })->name('login.auth');
 
-// ===========================
-// RUTAS PROTEGIDAS
-// ===========================
 Route::middleware('auth.session')->group(function () {
     
-    // Logout
     Route::post('/logout', function () {
         session()->flush();
         return redirect()->route('login.index');
@@ -61,21 +51,8 @@ Route::middleware('auth.session')->group(function () {
     // Estudios
     Route::get('/estudios/{id}', [EstudioController::class, 'show'])->name('estudios.show');
 
-    // Reportes
-    Route::get('/reportes', function() {
-        return view('panel_inicio.reportes');
-    })->name('reportes.index');
-
-    // Alias para compatibilidad
-    Route::get('/panel_inicio/ingreso', function() {
-        return redirect()->route('pacientes.create');
-    });
-    
-    Route::get('/panel_inicio/busqueda', function() {
-        return redirect()->route('pacientes.index');
-    });
-    
-    Route::get('/panel_inicio/reportes', function() {
-        return redirect()->route('reportes.index');
-    });
+    // Reportes - NUEVAS RUTAS
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/pdf/{id}', [ReporteController::class, 'exportPDF'])->name('reportes.pdf');
+    Route::get('/reportes/excel/{id}', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
 });
