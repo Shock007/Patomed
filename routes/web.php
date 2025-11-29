@@ -42,16 +42,19 @@ Route::middleware('auth.session')->group(function () {
         return redirect()->route('login.index');
     })->name('logout');
 
-    // Pacientes
+    // Pacientes - RUTAS COMPLETAS
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('/pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
     Route::post('/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
     Route::get('/pacientes/{id}', [PacienteController::class, 'show'])->name('pacientes.show');
+    Route::get('/pacientes/{id}/editar', [PacienteController::class, 'edit'])->name('pacientes.edit');
+    Route::put('/pacientes/{id}', [PacienteController::class, 'update'])->name('pacientes.update');
+    Route::delete('/pacientes/{id}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
 
     // Estudios
     Route::get('/estudios/{id}', [EstudioController::class, 'show'])->name('estudios.show');
 
-    // Reportes - NUEVAS RUTAS
+    // Reportes
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/pdf/{id}', [ReporteController::class, 'exportPDF'])->name('reportes.pdf');
     Route::get('/reportes/excel/{id}', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
