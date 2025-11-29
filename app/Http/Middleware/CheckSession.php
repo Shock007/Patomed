@@ -9,10 +9,9 @@ class CheckSession
 {
     public function handle(Request $request, Closure $next)
     {
-        // Validar que exista la sesión del usuario
         if (!session()->has('usuario_id')) {
             return redirect()->route('login.index')
-                             ->with('error', 'Debe iniciar sesión');
+                           ->with('error', 'Debe iniciar sesión para acceder');
         }
 
         return $next($request);
