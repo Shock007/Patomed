@@ -7,6 +7,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class ReporteController extends Controller
 {
@@ -35,15 +37,16 @@ class ReporteController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         
-        // Encabezados
+        // TÍTULO PRINCIPAL
         $sheet->setCellValue('A1', 'REPORTE DE ANÁLISIS PATOLÓGICO');
         $sheet->mergeCells('A1:F1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
-        // Datos del paciente
+        // DATOS DEL PACIENTE
         $row = 3;
         $sheet->setCellValue('A' . $row, 'DATOS DEL PACIENTE');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(12);
         
         $row++;
         $sheet->setCellValue('A' . $row, 'Código:');
@@ -69,18 +72,28 @@ class ReporteController extends Controller
         $sheet->setCellValue('A' . $row, 'Sexo:');
         $sheet->setCellValue('B' . $row, $paciente->sexo == 'm' ? 'Masculino' : 'Femenino');
         
-        // Estudios
+        // HISTORIAL DE ESTUDIOS
         $row += 2;
         $sheet->setCellValue('A' . $row, 'HISTORIAL DE ESTUDIOS');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(12);
         
         $row++;
-        $headers = ['Código', 'Fecha', 'Descripción Macro', 'Descripción Micro', 'Diagnóstico', 'Resultado'];
-        foreach ($headers as $col => $header) {
-            $sheet->setCellValueByColumnAndRow($col + 1, $row, $header);
-            $sheet->getStyleByColumnAndRow($col + 1, $row)->getFont()->setBold(true);
-        }
+        // Encabezados de la tabla
+        $sheet->setCellValue('A' . $row, 'Código');
+        $sheet->setCellValue('B' . $row, 'Fecha');
+        $sheet->setCellValue('C' . $row, 'Descripción Macro');
+        $sheet->setCellValue('D' . $row, 'Descripción Micro');
+        $sheet->setCellValue('E' . $row, 'Diagnóstico');
+        $sheet->setCellValue('F' . $row, 'Resultado');
         
+        // Estilar encabezados
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('0D47A1');
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->getColor()->setRGB('FFFFFF');
+        
+        // Datos de los estudios
         foreach ($paciente->estudios as $estudio) {
             $row++;
             $sheet->setCellValue('A' . $row, $estudio->codigo_estudio);
@@ -89,13 +102,21 @@ class ReporteController extends Controller
             $sheet->setCellValue('D' . $row, $estudio->descripcion_micro ?? 'N/A');
             $sheet->setCellValue('E' . $row, $estudio->diagnostico ?? 'N/A');
             $sheet->setCellValue('F' . $row, $estudio->resultado_texto);
+            
+            // Color según resultado
+            if ($estudio->resultado) {
+                $sheet->getStyle('F' . $row)->getFont()->getColor()->setRGB('DC3545'); // Rojo
+            } else {
+                $sheet->getStyle('F' . $row)->getFont()->getColor()->setRGB('28A745'); // Verde
+            }
         }
         
-        // Ajustar columnas
+        // Ajustar ancho de columnas automáticamente
         foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         
+        // Crear el archivo Excel
         $writer = new Xlsx($spreadsheet);
         
         $fileName = 'reporte_' . $paciente->codigo . '.xlsx';
