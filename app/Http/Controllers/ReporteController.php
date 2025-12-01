@@ -126,4 +126,135 @@ class ReporteController extends Controller
         
         return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
+
+    /**
+     * NUEVO: Exportar reporte general de todos los pacientes en PDF
+     */
+    public function exportGeneralPDF()
+    {
+        $pacientes = Paciente::with(['estudios.usuario'])
+                            ->orderBy('codigo', 'asc')
+                            ->get();
+        
+        $pdf = Pdf::loadView('reportes.general-pdf', compact('pacientes'))
+                 ->setPaper('a4', 'landscape'); // Orientación horizontal para más espacio
+        
+        return $pdf->download('reporte_general_pacientes_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * NUEVO: Exportar reporte general de todos los pacientes en Excel
+     */
+    public function exportGeneralExcel()
+    {
+        $pacientes = Paciente::with(['estudios.usuario'])
+                            ->orderBy('codigo', 'asc')
+                            ->get();
+        
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // TÍTULO PRINCIPAL
+        $sheet->setCellValue('A1', 'REPORTE GENERAL DE PACIENTES');
+        $sheet->mergeCells('A1:K1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        
+        // Fecha de generación
+        $sheet->setCellValue('A2', 'Fecha de generación: ' . date('d/m/Y H:i'));
+        $sheet->mergeCells('A2:K2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        
+        // ENCABEZADOS DE TABLA
+        $row = 4;
+        $headers = [
+            'A' => 'Código',
+            'B' => 'Nombre Completo',
+            'C' => 'Cédula',
+            'D' => 'Edad',
+            'E' => 'Sexo',
+            'F' => 'EPS',
+            'G' => 'Código Estudio',
+            'H' => 'Desc. Macroscópica',
+            'I' => 'Desc. Microscópica',
+            'J' => 'Diagnóstico',
+            'K' => 'Resultado'
+        ];
+        
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue($col . $row, $header);
+        }
+        
+        // Estilar encabezados
+        $sheet->getStyle('A' . $row . ':K' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row . ':K' . $row)->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('0D47A1');
+        $sheet->getStyle('A' . $row . ':K' . $row)->getFont()->getColor()->setRGB('FFFFFF');
+        $sheet->getStyle('A' . $row . ':K' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        
+        // DATOS DE PACIENTES
+        foreach ($pacientes as $paciente) {
+            // Si el paciente tiene estudios
+            if ($paciente->estudios->count() > 0) {
+                foreach ($paciente->estudios as $estudio) {
+                    $row++;
+                    
+                    $sheet->setCellValue('A' . $row, $paciente->codigo);
+                    $sheet->setCellValue('B' . $row, $paciente->nombre_completo);
+                    $sheet->setCellValue('C' . $row, $paciente->cedula);
+                    $sheet->setCellValue('D' . $row, $paciente->edad ?? 'N/A');
+                    $sheet->setCellValue('E' . $row, $paciente->sexo == 'm' ? 'M' : 'F');
+                    $sheet->setCellValue('F' . $row, $paciente->eps ?? 'N/A');
+                    $sheet->setCellValue('G' . $row, $estudio->codigo_estudio);
+                    $sheet->setCellValue('H' . $row, $estudio->descripcion_macro ?? 'N/A');
+                    $sheet->setCellValue('I' . $row, $estudio->descripcion_micro ?? 'N/A');
+                    $sheet->setCellValue('J' . $row, $estudio->diagnostico ?? 'N/A');
+                    $sheet->setCellValue('K' . $row, $estudio->resultado_texto);
+                    
+                    // Color según resultado
+                    if ($estudio->resultado) {
+                        $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('DC3545');
+                        $sheet->getStyle('K' . $row)->getFont()->setBold(true);
+                    } else {
+                        $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('28A745');
+                        $sheet->getStyle('K' . $row)->getFont()->setBold(true);
+                    }
+                }
+            } else {
+                // Paciente sin estudios
+                $row++;
+                
+                $sheet->setCellValue('A' . $row, $paciente->codigo);
+                $sheet->setCellValue('B' . $row, $paciente->nombre_completo);
+                $sheet->setCellValue('C' . $row, $paciente->cedula);
+                $sheet->setCellValue('D' . $row, $paciente->edad ?? 'N/A');
+                $sheet->setCellValue('E' . $row, $paciente->sexo == 'm' ? 'M' : 'F');
+                $sheet->setCellValue('F' . $row, $paciente->eps ?? 'N/A');
+                $sheet->setCellValue('G' . $row, 'Sin estudios');
+                $sheet->setCellValue('H' . $row, '-');
+                $sheet->setCellValue('I' . $row, '-');
+                $sheet->setCellValue('J' . $row, '-');
+                $sheet->setCellValue('K' . $row, '-');
+                
+                $sheet->getStyle('G' . $row . ':K' . $row)->getFont()->setItalic(true);
+                $sheet->getStyle('G' . $row . ':K' . $row)->getFont()->getColor()->setRGB('999999');
+            }
+        }
+        
+        // Ajustar ancho de columnas
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        // Crear el archivo Excel
+        $writer = new Xlsx($spreadsheet);
+        
+        $fileName = 'reporte_general_pacientes_' . date('Y-m-d') . '.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+        
+        $writer->save($temp_file);
+        
+        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
+    }
 }

@@ -58,4 +58,8 @@ Route::middleware('auth.session')->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/pdf/{id}', [ReporteController::class, 'exportPDF'])->name('reportes.pdf');
     Route::get('/reportes/excel/{id}', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
+    
+    // NUEVAS RUTAS: Reporte General
+    Route::get('/reportes/general/pdf', [ReporteController::class, 'exportGeneralPDF'])->name('reportes.general-pdf');
+    Route::get('/reportes/general/excel', [ReporteController::class, 'exportGeneralExcel'])->name('reportes.general-excel');
 });
