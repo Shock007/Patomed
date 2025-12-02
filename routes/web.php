@@ -13,6 +13,7 @@ Route::get('/', function () {
 });
 
 Route::get('/login', function () {
+    // Si ya tiene sesión activa, redirigir al panel
     if (session()->has('usuario_id')) {
         return redirect()->route('pacientes.create');
     }
@@ -28,8 +29,18 @@ Route::post('/login', function (Request $request) {
     $usuario = User::where('usuario', $request->username)->first();
 
     if ($usuario && Hash::check($request->password, $usuario->password_hash)) {
-        session(['usuario_id' => $usuario->id_usuario]);
-        return redirect()->route('pacientes.create');
+        // Regenerar sesión para prevenir fijación de sesión
+        $request->session()->regenerate();
+        
+        // Guardar datos de sesión
+        session([
+            'usuario_id' => $usuario->id_usuario,
+            'last_activity_time' => time(),
+            'last_regeneration' => now()
+        ]);
+        
+        return redirect()->route('pacientes.create')
+                       ->with('success', 'Bienvenido al sistema Patomed');
     }
 
     return back()->with('error', 'Credenciales incorrectas');
@@ -37,10 +48,31 @@ Route::post('/login', function (Request $request) {
 
 Route::middleware('auth.session')->group(function () {
     
-    Route::post('/logout', function () {
+    // Logout manual (botón de cerrar sesión)
+    Route::post('/logout', function (Request $request) {
+        // Limpiar completamente la sesión
         session()->flush();
-        return redirect()->route('login.index');
+        session()->regenerate();
+        
+        // Invalidar la sesión actual
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect()->route('login.index')
+                       ->with('success', 'Ha cerrado sesión correctamente');
     })->name('logout');
+
+    // NUEVA RUTA: Logout automático al cerrar pestaña
+    Route::post('/logout-auto', function (Request $request) {
+        // Cerrar sesión sin redirección (para llamadas AJAX)
+        session()->flush();
+        session()->regenerate();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Sesión cerrada automáticamente'
+        ], 200);
+    })->name('logout.auto');
 
     // Pacientes - RUTAS COMPLETAS
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
@@ -59,7 +91,7 @@ Route::middleware('auth.session')->group(function () {
     Route::get('/reportes/pdf/{id}', [ReporteController::class, 'exportPDF'])->name('reportes.pdf');
     Route::get('/reportes/excel/{id}', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
     
-    // NUEVAS RUTAS: Reporte General
+    // Reporte General
     Route::get('/reportes/general/pdf', [ReporteController::class, 'exportGeneralPDF'])->name('reportes.general-pdf');
     Route::get('/reportes/general/excel', [ReporteController::class, 'exportGeneralExcel'])->name('reportes.general-excel');
 });

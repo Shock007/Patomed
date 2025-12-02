@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Reporte Estudio - Patomed</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -44,5 +45,6 @@
         </div>
     </div>
 </div>
+<script src="{{ asset('js/session-monitor.js') }}"></script>
 </body>
 </html>

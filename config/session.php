@@ -29,11 +29,20 @@ return [
     | to be allowed to remain idle before it expires. If you want them
     | to immediately expire on the browser closing, set that option.
     |
+    | MODIFICADO: Reducido a 5 minutos para mayor seguridad
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 5),
 
-    'expire_on_close' => false,
+    /*
+    |--------------------------------------------------------------------------
+    | Session Expire On Close
+    |--------------------------------------------------------------------------
+    |
+    | MODIFICADO: Cambiado a true para cerrar sesión al cerrar navegador
+    */
+
+    'expire_on_close' => true,
 
     /*
     |--------------------------------------------------------------------------
