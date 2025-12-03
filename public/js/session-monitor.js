@@ -1,6 +1,6 @@
 /**
  * Monitor de Sesión para Patomed
- * Cierra la sesión automáticamente al cerrar la pestaña
+ * Cierra la sesión automáticamente al cerrar la pestaña/navegador
  */
 
 (function() {
@@ -34,30 +34,6 @@
         }
     });
 
-    // Detectar inactividad (opcional, para mayor seguridad)
-    let inactivityTimer;
-    const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutos
-
-    function resetInactivityTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(function() {
-            // Redirigir al login por inactividad
-            window.location.href = '/logout?reason=inactivity';
-        }, INACTIVITY_LIMIT);
-    }
-
-    // Escuchar eventos de actividad del usuario
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(function(event) {
-        document.addEventListener(event, resetInactivityTimer, true);
-    });
-
-    // Iniciar el temporizador
-    resetInactivityTimer();
-
-    // Limpiar al descargar la página
-    window.addEventListener('beforeunload', function() {
-        clearTimeout(inactivityTimer);
-    });
-
-    console.log('Monitor de sesión Patomed activado');
+    console.log('✓ Monitor de sesión Patomed activado');
+    console.log('✓ La sesión se cerrará al cerrar el navegador');
 })();

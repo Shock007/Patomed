@@ -29,23 +29,11 @@ class CheckSession
                            ->with('info', 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.');
         }
 
-        // Verificar tiempo de última actividad (opcional, para seguridad adicional)
-        $lastActivity = session('last_activity_time');
-        $timeout = 5 * 60; // 5 minutos en segundos
-        
-        if ($lastActivity && (time() - $lastActivity > $timeout)) {
-            // Sesión expirada por inactividad
-            session()->flush();
-            session()->regenerate();
-            
-            return redirect()->route('login.index')
-                           ->with('info', 'Su sesión ha expirado por inactividad. Por favor, inicie sesión nuevamente.');
-        }
-        
-        // Actualizar tiempo de última actividad
-        session(['last_activity_time' => time()]);
+        // NOTA: El timeout de inactividad se maneja ahora desde JavaScript
+        // en session-monitor.js, no desde el middleware para evitar cierres
+        // prematuros al navegar entre pestañas
 
-        // Regenerar el ID de sesión periódicamente para seguridad
+        // Regenerar el ID de sesión periódicamente para seguridad (cada 30 minutos)
         if (!$request->session()->has('last_regeneration')) {
             $request->session()->put('last_regeneration', now());
             $request->session()->regenerate();
