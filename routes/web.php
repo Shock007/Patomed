@@ -32,7 +32,7 @@ Route::post('/login', function (Request $request) {
         // Regenerar sesión para prevenir fijación de sesión
         $request->session()->regenerate();
         
-        // Guardar datos de sesión
+        // **NUEVO: Inicializar timestamp de última actividad**
         session([
             'usuario_id' => $usuario->id_usuario,
             'last_activity_time' => time(),
@@ -48,11 +48,10 @@ Route::post('/login', function (Request $request) {
 
 Route::middleware('auth.session')->group(function () {
     
-    // Logout manual (botón de cerrar sesión)
+    // **ÚNICO LOGOUT: Manual (botón de cerrar sesión)**
     Route::post('/logout', function (Request $request) {
         // Limpiar completamente la sesión
         session()->flush();
-        session()->regenerate();
         
         // Invalidar la sesión actual
         $request->session()->invalidate();
@@ -62,17 +61,7 @@ Route::middleware('auth.session')->group(function () {
                        ->with('success', 'Ha cerrado sesión correctamente');
     })->name('logout');
 
-    // NUEVA RUTA: Logout automático al cerrar pestaña
-    Route::post('/logout-auto', function (Request $request) {
-        // Cerrar sesión sin redirección (para llamadas AJAX)
-        session()->flush();
-        session()->regenerate();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Sesión cerrada automáticamente'
-        ], 200);
-    })->name('logout.auto');
+    // **ELIMINAR /logout-auto** - Ya no es necesario
 
     // Pacientes - RUTAS COMPLETAS
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');

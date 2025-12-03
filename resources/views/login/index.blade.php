@@ -85,16 +85,16 @@
             </button>
         </form>
 
-        <!-- NOTA DE SEGURIDAD -->
+        <!-- NOTA DE SEGURIDAD ACTUALIZADA -->
         <div class="alert alert-light mt-3 mb-0 text-center" style="font-size: 12px;">
             <i class="bi bi-shield-lock text-primary me-1"></i>
-            Su sesión se cerrará automáticamente al cerrar el navegador
+            Su sesión se cerrará después de 2 minutos de inactividad
         </div>
 
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('js/session-monitor.js') }}"></script>
+<!-- NO cargar session-monitor.js en login -->
 </body>
 </html>

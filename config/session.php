@@ -17,21 +17,21 @@ return [
     | Session Lifetime
     |--------------------------------------------------------------------------
     |
-    | MODIFICADO: Aumentado a 120 minutos (2 horas) para evitar cierres prematuros
-    | La sesión se cerrará principalmente al cerrar el navegador
+    | MODIFICADO: 2 minutos (120 segundos) de inactividad
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 2),
 
     /*
     |--------------------------------------------------------------------------
     | Session Expire On Close
     |--------------------------------------------------------------------------
     |
-    | MODIFICADO: true = La sesión se destruye al cerrar el navegador
+    | MODIFICADO: false = La sesión NO se destruye al cerrar el navegador
+    | Se maneja por inactividad únicamente
     */
 
-    'expire_on_close' => true,
+    'expire_on_close' => false,
 
     /*
     |--------------------------------------------------------------------------
