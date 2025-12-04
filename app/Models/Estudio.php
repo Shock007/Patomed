@@ -20,12 +20,14 @@ class Estudio extends Model
         'diagnostico',
         'resultado',
         'estado',
-        'fecha_registro'
+        'fecha_registro',
+        'fecha_validacion' // NUEVO CAMPO
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
         'fecha_registro' => 'datetime',
+        'fecha_validacion' => 'datetime', // NUEVO CAST
         'resultado' => 'boolean',
         'estado' => 'integer',
     ];
@@ -50,5 +52,11 @@ class Estudio extends Model
     public function getEstadoTextoAttribute()
     {
         return $this->estado == 1 ? 'Validado' : 'Parcial';
+    }
+
+    // NUEVO: Verificar si está validado
+    public function estaValidado()
+    {
+        return $this->estado == 1 && !is_null($this->fecha_validacion);
     }
 }

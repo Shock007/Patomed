@@ -11,13 +11,13 @@ use Illuminate\Http\Request;
 class PacienteController extends Controller
 {
     /**
-     * Listado con búsqueda por código, cédula o nombre
+     * Listado con búsqueda por código, cédula, nombre Y FECHA
      */
     public function index(Request $request)
     {
         $query = Paciente::with(['ultimoEstudio.usuario']);
         
-        // Búsqueda dinámica
+        // Búsqueda dinámica por código/cédula/nombre
         if ($request->filled('busqueda')) {
             $termino = $request->busqueda;
             $tipoBusqueda = $request->tipo_busqueda ?? 'codigo';
@@ -35,6 +35,33 @@ class PacienteController extends Controller
                     break;
                 default: // codigo
                     $query->where('codigo', 'LIKE', "%{$termino}%");
+            }
+        }
+
+        // NUEVO: Filtro por fecha
+        if ($request->filled('tipo_fecha') && $request->filled('valor_fecha')) {
+            $tipoFecha = $request->tipo_fecha;
+            $valorFecha = $request->valor_fecha;
+
+            switch ($tipoFecha) {
+                case 'fecha_especifica':
+                    $query->whereDate('fecha_creacion', $valorFecha);
+                    break;
+                    
+                case 'mes':
+                    // Formato: YYYY-MM
+                    if (preg_match('/^\d{4}-\d{2}$/', $valorFecha)) {
+                        $query->whereYear('fecha_creacion', substr($valorFecha, 0, 4))
+                              ->whereMonth('fecha_creacion', substr($valorFecha, 5, 2));
+                    }
+                    break;
+                    
+                case 'anio':
+                    // Formato: YYYY
+                    if (preg_match('/^\d{4}$/', $valorFecha)) {
+                        $query->whereYear('fecha_creacion', $valorFecha);
+                    }
+                    break;
             }
         }
         
@@ -77,7 +104,7 @@ class PacienteController extends Controller
                 'descripcion_micro' => $request->descripcion_microscopica,
                 'diagnostico' => $request->diagnostico,
                 'resultado' => $request->resultado,
-                'estado' => 1,
+                'estado' => 0, // Siempre inicia como NO VALIDADO
             ]);
 
             DB::commit();
@@ -103,18 +130,12 @@ class PacienteController extends Controller
         return view('panel_inicio.detalle', compact('paciente'));
     }
 
-    /**
-     * NUEVA: Mostrar formulario de edición
-     */
     public function edit($id)
     {
         $paciente = Paciente::with('ultimoEstudio')->findOrFail($id);
         return view('panel_inicio.editar', compact('paciente'));
     }
 
-    /**
-     * NUEVA: Actualizar paciente y último estudio
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -128,16 +149,6 @@ class PacienteController extends Controller
             'descripcion_microscopica' => 'nullable|string|max:5000',
             'diagnostico' => 'nullable|string|max:2000',
             'resultado' => 'required|in:0,1',
-        ], [
-            'nombre.required' => 'El nombre es obligatorio',
-            'nombre.regex' => 'El nombre solo puede contener letras',
-            'apellidos.required' => 'Los apellidos son obligatorios',
-            'apellidos.regex' => 'Los apellidos solo pueden contener letras',
-            'cedula.required' => 'La cédula es obligatoria',
-            'cedula.regex' => 'La cédula solo puede contener números',
-            'fecha_nacimiento.before' => 'La fecha de nacimiento debe ser anterior a hoy',
-            'sexo.required' => 'El sexo es obligatorio',
-            'resultado.required' => 'El resultado es obligatorio',
         ]);
 
         try {
@@ -145,7 +156,6 @@ class PacienteController extends Controller
 
             $paciente = Paciente::findOrFail($id);
 
-            // Actualizar datos del paciente
             $paciente->update([
                 'nombre' => strtoupper($request->nombre),
                 'apellidos' => strtoupper($request->apellidos),
@@ -155,7 +165,7 @@ class PacienteController extends Controller
                 'sexo' => $request->sexo,
             ]);
 
-            // Actualizar último estudio si existe
+            // Actualizar último estudio (mantener estado de validación)
             $ultimoEstudio = $paciente->ultimoEstudio;
             if ($ultimoEstudio) {
                 $ultimoEstudio->update([
@@ -180,9 +190,6 @@ class PacienteController extends Controller
         }
     }
 
-    /**
-     * NUEVA: Eliminar paciente y estudios relacionados
-     */
     public function destroy($id)
     {
         try {
@@ -191,8 +198,6 @@ class PacienteController extends Controller
             $paciente = Paciente::findOrFail($id);
             $codigoPaciente = $paciente->codigo;
 
-            // La eliminación en cascada está configurada en la BD
-            // Esto eliminará automáticamente todos los estudios relacionados
             $paciente->delete();
 
             DB::commit();
@@ -204,6 +209,54 @@ class PacienteController extends Controller
             DB::rollBack();
             
             return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * NUEVO: Validar paciente (captura fecha de validación)
+     */
+    public function validar($id)
+    {
+        try {
+            $paciente = Paciente::with('ultimoEstudio')->findOrFail($id);
+
+            if (!$paciente->ultimoEstudio) {
+                return back()->with('error', 'El paciente no tiene estudios registrados');
+            }
+
+            $paciente->ultimoEstudio->update([
+                'estado' => 1, // Validado
+                'fecha_validacion' => now()
+            ]);
+
+            return back()->with('success', "Paciente {$paciente->codigo} validado correctamente");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al validar: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * NUEVO: Invalidar paciente (permite edición)
+     */
+    public function invalidar($id)
+    {
+        try {
+            $paciente = Paciente::with('ultimoEstudio')->findOrFail($id);
+
+            if (!$paciente->ultimoEstudio) {
+                return back()->with('error', 'El paciente no tiene estudios registrados');
+            }
+
+            $paciente->ultimoEstudio->update([
+                'estado' => 0, // Parcial
+                'fecha_validacion' => null
+            ]);
+
+            return back()->with('success', "Paciente {$paciente->codigo} marcado como no validado");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al invalidar: ' . $e->getMessage());
         }
     }
 }
